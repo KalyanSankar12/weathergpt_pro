@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WeatherGPT — MoES / IMD Disaster Management</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">◈</span>
+      <div>
+        <div class="brand-name">WeatherGPT</div>
+        
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span id="demoModeBadge" class="badge">DEMO MODE</span>
+      <select id="langSelect" class="lang-select">
+        <option value="en">English</option>
+        <option value="hi">हिंदी</option>
+      </select>
+      <div class="location-input">
+        <input id="locationInput" type="text" value="Indore" placeholder="City" />
+        <button id="locationGo">Go</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="dashboard">Dashboard</button>
+    <button class="tab" data-tab="chat">WeatherGPT Chat</button>
+    <button class="tab" data-tab="alerts">Alerts</button>
+    <button class="tab" data-tab="agriculture">Agriculture</button>
+  </nav>
+
+  <main>
+    <!-- DASHBOARD -->
+    <section id="tab-dashboard" class="tab-panel active">
+      <div class="grid grid-top">
+        <div class="card card-current">
+          <div class="card-label">Current Conditions</div>
+          <div id="currentLoading" class="loading">Fetching weather…</div>
+          <div id="currentContent" class="hidden">
+            <div class="temp-row">
+              <span id="curTemp" class="temp-big">--°</span>
+              <span id="curCondition" class="condition-text">--</span>
+            </div>
+            <div class="stat-grid">
+              <div class="stat"><span class="stat-label">Feels like</span><span id="curFeels" class="stat-value">--°</span></div>
+              <div class="stat"><span class="stat-label">Humidity</span><span id="curHumidity" class="stat-value">--%</span></div>
+              <div class="stat"><span class="stat-label">Wind</span><span id="curWind" class="stat-value">-- km/h</span></div>
+              <div class="stat"><span class="stat-label">Pressure</span><span id="curPressure" class="stat-value">-- hPa</span></div>
+              <div class="stat"><span class="stat-label">Visibility</span><span id="curVisibility" class="stat-value">-- km</span></div>
+              <div class="stat"><span class="stat-label">Rain chance</span><span id="curRain" class="stat-value">--%</span></div>
+            </div>
+            <div class="source-tag" id="curSource">source: --</div>
+          </div>
+        </div>
+
+        <div class="card card-hourly">
+          <div class="card-label">Hourly Forecast</div>
+          <canvas id="hourlyChart" height="140"></canvas>
+        </div>
+      </div>
+
+      <div class="card card-forecast">
+        <div class="card-label">7-Day Forecast</div>
+        <div id="forecastRow" class="forecast-row"></div>
+      </div>
+
+      <div class="card card-climate">
+        <div class="card-label">Climate Trends <span class="demo-tag">DEMO DATASET</span></div>
+        <canvas id="climateChart" height="120"></canvas>
+      </div>
+    </section>
+
+    <!-- CHAT -->
+    <section id="tab-chat" class="tab-panel">
+      <div class="card chat-card">
+        <div class="card-label">Ask WeatherGPT</div>
+        <div id="chatWindow" class="chat-window">
+          <div class="chat-msg bot">
+            <span class="chat-bubble">Hi! Ask me things like "Will it rain tomorrow?" or "कल इंदौर में बारिश होगी क्या?"</span>
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <button id="micBtn" class="mic-btn" title="Speak your question">🎤</button>
+          <input id="chatInput" type="text" placeholder="Type your weather question…" />
+          <button id="chatSend">Send</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ALERTS -->
+    <section id="tab-alerts" class="tab-panel">
+      <div class="card">
+        <div class="card-label">Active Weather Alerts</div>
+        <div id="alertsList" class="alerts-list">
+          <div class="loading">Checking alerts…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AGRICULTURE -->
+    <section id="tab-agriculture" class="tab-panel">
+      <div class="card">
+        <div class="card-label">Crop Advisory</div>
+        <div class="crop-select-row">
+          <select id="cropSelect">
+            <option value="wheat">Wheat</option>
+            <option value="rice">Rice</option>
+            <option value="soybean">Soybean</option>
+            <option value="cotton">Cotton</option>
+            <option value="maize">Maize</option>
+          </select>
+          <button id="cropGo">Get Advisory</button>
+        </div>
+        <div id="cropResult" class="crop-result"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    WeatherGPT — Designed for integration with official IMD meteorological services.
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

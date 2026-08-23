@@ -1,0 +1,253 @@
+/* ---------------------------------------------------------
+   WeatherGPT — "Met Station Console" theme
+   Palette: deep slate/navy background evoking a night radar
+   screen, monsoon-blue primary, amber for alerts/warnings,
+   a readout monospace font for numeric data (like a real
+   weather station display) paired with a clean sans for text.
+--------------------------------------------------------- */
+
+:root {
+  --bg: #0b1120;
+  --bg-panel: #131c30;
+  --bg-panel-raised: #182541;
+  --border: #24324f;
+  --text: #e7ecf5;
+  --text-dim: #8a97b3;
+  --blue: #4da3ff;
+  --blue-dim: #2c5c94;
+  --amber: #f5a524;
+  --red: #ef4444;
+  --green: #3ecf8e;
+
+  --font-body: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Consolas', 'SFMono-Regular', Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at 20% -10%, #16223c 0%, var(--bg) 55%);
+  color: var(--text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+}
+
+/* ---------------- Topbar ---------------- */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(19, 28, 48, 0.7);
+  backdrop-filter: blur(6px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-mark {
+  font-size: 26px;
+  color: var(--blue);
+  text-shadow: 0 0 12px rgba(77, 163, 255, 0.6);
+}
+.brand-name { font-weight: 700; font-size: 18px; letter-spacing: 0.3px; }
+.brand-sub { font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); }
+
+.topbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(245, 165, 36, 0.15);
+  color: var(--amber);
+  border: 1px solid rgba(245, 165, 36, 0.4);
+  letter-spacing: 0.5px;
+}
+
+.lang-select, .location-input input, #cropSelect, #chatInput, #locationInput {
+  background: var(--bg-panel-raised);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-family: var(--font-body);
+  font-size: 13px;
+}
+
+.location-input { display: flex; gap: 6px; }
+.location-input input { width: 110px; }
+
+button {
+  background: var(--blue);
+  color: #05101f;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+button:hover { opacity: 0.85; }
+
+/* ---------------- Tabs ---------------- */
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 10px 22px 0;
+  border-bottom: 1px solid var(--border);
+}
+.tab {
+  background: transparent;
+  color: var(--text-dim);
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 10px 16px;
+  font-weight: 600;
+}
+.tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+.tab:hover { opacity: 1; color: var(--text); }
+
+main { padding: 22px; max-width: 1100px; margin: 0 auto; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ---------------- Cards ---------------- */
+.card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+.card-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  font-family: var(--font-mono);
+}
+.demo-tag {
+  font-size: 10px;
+  color: var(--amber);
+  border: 1px solid var(--amber);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+
+.grid-top { display: grid; grid-template-columns: 1fr 1.3fr; gap: 18px; }
+@media (max-width: 760px) { .grid-top { grid-template-columns: 1fr; } }
+
+.temp-row { display: flex; align-items: baseline; gap: 14px; margin-bottom: 14px; }
+.temp-big { font-family: var(--font-mono); font-size: 52px; font-weight: 700; color: var(--blue); }
+.condition-text { font-size: 16px; color: var(--text-dim); }
+
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat { background: var(--bg-panel-raised); border-radius: 8px; padding: 8px 10px; }
+.stat-label { display: block; font-size: 10px; color: var(--text-dim); text-transform: uppercase; }
+.stat-value { display: block; font-family: var(--font-mono); font-size: 15px; margin-top: 2px; }
+
+.source-tag { margin-top: 12px; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+
+.forecast-row { display: flex; gap: 10px; overflow-x: auto; }
+.forecast-day {
+  min-width: 100px;
+  background: var(--bg-panel-raised);
+  border-radius: 8px;
+  padding: 12px 10px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.forecast-day .fd-name { font-size: 12px; color: var(--text-dim); }
+.forecast-day .fd-cond { font-size: 20px; margin: 6px 0; }
+.forecast-day .fd-temp { font-family: var(--font-mono); font-size: 13px; }
+.forecast-day .fd-rain { font-size: 11px; color: var(--blue); margin-top: 4px; }
+
+.loading { color: var(--text-dim); font-family: var(--font-mono); font-size: 13px; }
+.hidden { display: none; }
+
+/* ---------------- Chat ---------------- */
+.chat-card { display: flex; flex-direction: column; height: 65vh; }
+.chat-window {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 6px 2px;
+}
+.chat-msg { display: flex; }
+.chat-msg.user { justify-content: flex-end; }
+.chat-bubble {
+  max-width: 75%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.chat-msg.bot .chat-bubble { background: var(--bg-panel-raised); border: 1px solid var(--border); }
+.chat-msg.user .chat-bubble { background: var(--blue-dim); }
+.chat-meta { font-size: 10px; color: var(--text-dim); font-family: var(--font-mono); margin-top: 4px; }
+
+.chat-input-row { display: flex; gap: 8px; margin-top: 12px; }
+#chatInput { flex: 1; }
+.mic-btn { background: var(--bg-panel-raised); border: 1px solid var(--border); color: var(--text); font-size: 16px; padding: 7px 12px; }
+.mic-btn.recording { background: var(--red); color: white; }
+
+/* ---------------- Alerts ---------------- */
+.alerts-list { display: flex; flex-direction: column; gap: 10px; }
+.alert-item {
+  border-left: 4px solid var(--text-dim);
+  background: var(--bg-panel-raised);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.alert-item.sev-LOW { border-left-color: var(--green); }
+.alert-item.sev-MODERATE { border-left-color: var(--amber); }
+.alert-item.sev-HIGH { border-left-color: #f97316; }
+.alert-item.sev-SEVERE, .alert-item.sev-EXTREME { border-left-color: var(--red); }
+
+.alert-top { display: flex; justify-content: space-between; align-items: center; }
+.alert-type { font-weight: 700; }
+.alert-severity {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+}
+.alert-msg { margin: 6px 0 4px; font-size: 13px; color: var(--text); }
+.alert-rec { font-size: 12px; color: var(--text-dim); }
+.no-alerts { color: var(--green); font-family: var(--font-mono); }
+
+/* ---------------- Agriculture ---------------- */
+.crop-select-row { display: flex; gap: 10px; margin-bottom: 16px; }
+.crop-result { display: flex; flex-direction: column; gap: 8px; }
+.crop-advisory-item {
+  background: var(--bg-panel-raised);
+  border-left: 3px solid var(--green);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+}
+.crop-disclaimer { font-size: 11px; color: var(--text-dim); margin-top: 10px; font-style: italic; }
+
+/* ---------------- Footer ---------------- */
+.footer {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-family: var(--font-mono);
+}

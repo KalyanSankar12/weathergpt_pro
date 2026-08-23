@@ -1,0 +1,17 @@
+# Environment variables (NEVER commit these)
+.env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+env/
+*.egg-info/
+
+# Database
+*.db
+*.sqlite3
+
+# OS/editor junk
+.DS_Store
+.vscode/
