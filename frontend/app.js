@@ -212,7 +212,11 @@ async function sendChat() {
     const res = await fetch(`${API}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message, language: currentLanguage }),
+      body: JSON.stringify({
+        message,
+        language: currentLanguage,
+        location: currentLocation
+      }),
     });
     const d = await res.json();
     thinkingBubble.remove();
@@ -258,8 +262,34 @@ if (SpeechRecognition) {
 
 function speak(text) {
   if (!window.speechSynthesis) return;
+
   const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = currentLanguage === "hi" ? "hi-IN" : "en-IN";
+
+  const voices = window.speechSynthesis.getVoices();
+
+  if (currentLanguage === "hi") {
+    utter.lang = "hi-IN";
+
+    const hindiVoice = voices.find(
+      voice => voice.lang.toLowerCase() === "hi-in"
+    );
+
+    if (hindiVoice) {
+      utter.voice = hindiVoice;
+    }
+  } else {
+    utter.lang = "en-IN";
+
+    const englishVoice = voices.find(
+      voice => voice.lang.toLowerCase() === "en-in"
+    );
+
+    if (englishVoice) {
+      utter.voice = englishVoice;
+    }
+  }
+
+  window.speechSynthesis.cancel();
   window.speechSynthesis.speak(utter);
 }
 

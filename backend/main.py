@@ -101,59 +101,155 @@ async def chat(req: ChatRequest):
     if not req.message or not req.message.strip():
         raise HTTPException(status_code=400, detail="message cannot be empty")
 
-    # STEP 1: understand the question (rule-based NLU, see ai_service.py)
+    # STEP 1: Understand the question
     parsed = ai_service.parse_query(req.message)
-    intent, location, language = parsed["intent"], parsed["location"], parsed["language"]
+    intent = parsed["intent"]
 
-    # STEP 2: fetch REAL data for that location (never invented by AI)
+    # City explicitly mentioned in the question
+    detected_location = parsed["location"]
+
+    # If a city is mentioned, use it.
+    # Otherwise, use the city selected in the frontend.
+    if detected_location != "indore":
+        location = detected_location
+    else:
+        location = req.location or "Indore"
+
+    language = parsed["language"]
+
+    # STEP 2: Handle greetings separately
+    # Greetings do not need weather data.
+    if intent == "greeting":
+        response_text, method = await ai_service.generate_response(
+            intent,
+            language,
+            {},
+            req.message
+        )
+
+        database.log_query(req.message, location, intent)
+        database.log_chat(req.message, response_text, language)
+
+        return ChatResponse(
+            reply=response_text,
+            intent=intent,
+            location=location.title(),
+            data_source="none",
+            weather_data={}
+        )
+    
+    # Handle unsupported questions
+    if intent == "out_of_scope":
+        reply = await ai_service.generate_response(
+            intent,
+            language,
+            {},
+            req.message
+        )
+        if isinstance(reply, tuple):
+            reply = reply[0]
+            return ChatResponse(
+                reply=reply,
+                intent=intent,
+                language=language,
+                location=location.title(),
+                data_source="none",
+                weather_data={}
+            )
+    # STEP 3: Fetch real/demo weather data
     weather = await weather_service.get_current_weather_safe(location)
 
-    # STEP 3: for forecast-flavoured intents, blend in tomorrow's forecast data
-    context = dict(weather)
-    if intent in ("forecast", "rain_forecast"):
-        provider = weather_service.get_weather_provider()
-        try:
-            forecast = await provider.get_forecast(location, days=2)
-        except Exception:
-            forecast = await weather_service.MockWeatherProvider().get_forecast(location, days=2)
-        if len(forecast) > 1:
-            context.update(forecast[1])  # tomorrow
+    if not weather:
+        raise HTTPException(
+            status_code=404,
+            detail="Weather data not found"
+        )
 
-    # STEP 4: if this is an alert-related question, evaluate alerts now
-    alert_summary = ""
+    # STEP 4: For forecast-related intents, get tomorrow's forecast
+    context = dict(weather)
+
+    if intent in ("forecast","rain_today", "rain_tomorrow"):
+        provider = weather_service.get_weather_provider()
+
+        try:
+            forecast = await provider.get_forecast(
+                location,
+                days=2
+            )
+        except Exception:
+            forecast = await weather_service.MockWeatherProvider().get_forecast(
+                location,
+                days=2
+            )
+
+        if len(forecast) > 1:
+            context.update(forecast[1])
+
+    # STEP 5: Handle weather alerts
     if intent == "alerts":
         alerts = alert_service.evaluate_alerts(weather)
+
         if alerts:
             intent = "alerts_some"
             context["count"] = len(alerts)
-            context["alert_summary"] = "; ".join(a["type"] for a in alerts)
+            context["alert_summary"] = "; ".join(
+                a["type"] for a in alerts
+            )
         else:
             intent = "alerts_none"
 
-    # STEP 5: agriculture questions get routed with a generic wheat example
-    # (the dedicated /api/agriculture/advisory endpoint handles specific crops)
+    # STEP 6: Agriculture questions
     if intent == "agriculture":
-        advisories = agriculture_service.get_advisory("wheat", weather)
+        advisories = agriculture_service.get_advisory(
+            "wheat",
+            weather
+        )
+
         reply = " ".join(advisories)
-        database.log_chat(req.message, reply, language)
-        return ChatResponse(reply=reply, intent=intent, location=location.title(),
-                             data_source=weather.get("data_source", "mock"), weather_data=weather)
 
-    # STEP 6: turn the real data into a natural-language sentence
-    reply, method = await ai_service.generate_response(intent, language, context, req.message)
+        database.log_chat(
+            req.message,
+            reply,
+            language
+        )
 
-    database.log_query(req.message, location, intent)
-    database.log_chat(req.message, reply, language)
+        return ChatResponse(
+            reply=reply,
+            intent=intent,
+            location=location.title(),
+            data_source=weather.get("data_source", "mock"),
+            weather_data=weather
+        )
 
+    # STEP 7: Generate final response
+    reply, method = await ai_service.generate_response(
+        intent,
+        language,
+        context,
+        req.message
+    )
+
+    # STEP 8: Save query/chat history
+    database.log_query(
+        req.message,
+        location,
+        intent
+    )
+
+    database.log_chat(
+        req.message,
+        reply,
+        language
+    )
+
+    # STEP 9: Return final response
     return ChatResponse(
         reply=reply,
         intent=intent,
         location=location.title(),
         data_source=weather.get("data_source", "mock"),
-        weather_data=weather,
+        weather_data=weather
     )
-
-
 # -----------------------------------------------------------------
 # Alerts endpoint
 # -----------------------------------------------------------------

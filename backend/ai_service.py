@@ -38,38 +38,118 @@ FORECAST_WORDS = ["tomorrow", "week", "forecast", "कल", "अगले", "आ
 ALERT_WORDS = ["alert", "warning", "चेतावनी", "danger", "risk"]
 IRRIGATE_WORDS = ["irrigate", "irrigation", "सिंचाई", "crop", "फसल"]
 HEATWAVE_WORDS = ["heatwave", "heat wave", "लू", "precaution"]
-
+GREETING_WORDS = [
+    "hi",
+    "hello",
+    "hey",
+    "namaste",
+    "good morning",
+    "good afternoon",
+    "good evening",
+    "नमस्ते",
+    "नमस्कार"
+]
 
 def extract_location(text: str) -> str:
     text_lower = text.lower()
     for city in KNOWN_CITIES:
         if city in text_lower:
             return city
-    return "indore"  # sensible default for this SIH demo (Indore-based)
+    return "indore"  
 
 
-def detect_intent(text: str) -> str:
-    """Very simple keyword-based intent classifier — no ML needed for
-    a small, well-defined set of question types like this."""
-    text_lower = text.lower()
+def detect_intent(text):
+    text_lower = text.lower().strip()
 
-    if any(w in text_lower for w in IRRIGATE_WORDS):
-        return "agriculture"
-    if any(w in text_lower for w in HEATWAVE_WORDS):
-        return "heatwave_precaution"
-    if any(w in text_lower for w in ALERT_WORDS):
+    # ---------------- GREETING ----------------
+    greeting_phrases = [
+        "hi",
+        "hello",
+        "hey",
+        "namaste",
+        "good morning",
+        "good afternoon",
+        "good evening",
+        "नमस्ते",
+        "नमस्कार"
+    ]
+
+    if text_lower in greeting_phrases:
+        return "greeting"
+
+    # ---------------- WEATHER ----------------
+    rain_words = [
+        "rain",
+        "rainfall",
+        "raining",
+        "barish",
+        "बारिश"
+    ]
+
+    forecast_words = [
+        "forecast",
+        "tomorrow",
+        "today",
+        "this week",
+        "कल",
+        "आज"
+    ]
+
+    temperature_words = [
+        "temperature",
+        "temp",
+        "hot",
+        "cold",
+        "तापमान"
+    ]
+
+    alert_words = [
+        "alert",
+        "warning",
+        "danger",
+        "risk",
+        "चेतावनी"
+    ]
+
+    agriculture_words = [
+        "crop",
+        "agriculture",
+        "irrigation",
+        "irrigate",
+        "फसल",
+        "सिंचाई"
+    ]
+    if any(word in text_lower for word in alert_words):
         return "alerts"
-    if any(w in text_lower for w in RAIN_WORDS) and any(w in text_lower for w in FORECAST_WORDS):
-        return "rain_forecast"
-    if any(w in text_lower for w in RAIN_WORDS):
-        return "rain_now"
-    if any(w in text_lower for w in FORECAST_WORDS):
+
+    if any(word in text_lower for word in agriculture_words):
+        return "agriculture"
+    if any(word in text_lower for word in rain_words):
+        if "tomorrow" in text_lower or "कल" in text_lower:
+            return "rain_tomorrow"
+        if "today" in text_lower or "आज" in text_lower:
+            return "rain_today"
+        return "rain_today"
+    if any(word in text_lower for word in forecast_words):
         return "forecast"
-    if any(w in text_lower for w in TEMP_WORDS):
-        return "temperature"
-    return "current_weather"
 
+    if any(word in text_lower for word in temperature_words):
+        return "current_weather"
 
+    # ---------------- GENERAL WEATHER WORDS ----------------
+
+    weather_words = [
+        "weather",
+        "climate",
+        "mausam",
+        "मौसम"
+    ]
+
+    if any(word in text_lower for word in weather_words):
+        return "current_weather"
+
+    # ---------------- UNKNOWN ----------------
+    return "out_of_scope"
 def detect_language(text: str) -> str:
     """If the text contains Devanagari characters, treat it as Hindi."""
     return "hi" if re.search(r"[\u0900-\u097F]", text) else "en"
@@ -91,24 +171,37 @@ def parse_query(text: str) -> dict:
 
 TEMPLATES = {
     "en": {
+        "greeting": "Hello! 👋 I'm WeatherGPT. You can ask me about current weather, forecasts, rainfall, alerts, or agriculture advisories.",
         "current_weather": "The weather in {location} right now is {condition} with a temperature of {temperature}°C (feels like {feels_like}°C). Humidity is {humidity}% and wind speed is {wind_speed} km/h.",
         "temperature": "The current temperature in {location} is {temperature}°C, feels like {feels_like}°C.",
         "rain_now": "Current rain probability in {location} is {rain_probability}%. Condition: {condition}.",
-        "rain_forecast": "Tomorrow's rain probability in {location} is around {rain_probability}%, with an expected condition of {condition}.",
+        "rain_today": "Today's rain probability in {location} is around {rain_probability}%, with an expected condition of {condition}.",
+        "rain_tomorrow": "Tomorrow's rain probability in {location} is around {rain_probability}%, with an expected condition of {condition}.",
         "forecast": "Here's the forecast for {location}: expect {condition} with a high of {temp_max}°C and a low of {temp_min}°C.",
         "alerts_none": "No active weather alerts for {location} right now. Conditions look normal.",
         "alerts_some": "⚠️ {count} active alert(s) for {location}: {alert_summary}",
         "heatwave_precaution": "Current temperature in {location} is {temperature}°C. During heatwaves: stay hydrated, avoid direct sun 12–3 PM, wear light cotton clothing, and check on elderly/children regularly.",
+        "out_of_scope": (
+    "Sorry, I can only answer weather-related questions, "
+    "forecasts, alerts, and agriculture weather advisories."
+)
     },
     "hi": {
+        "greeting": "नमस्ते! 👋 मैं WeatherGPT हूँ। आप मुझसे मौसम, पूर्वानुमान, बारिश, चेतावनी या कृषि संबंधी जानकारी पूछ सकते हैं।",
         "current_weather": "{location} में अभी मौसम {condition} है। तापमान {temperature}°C है (महसूस {feels_like}°C जैसा)। आर्द्रता {humidity}% है और हवा की गति {wind_speed} किमी/घंटा है।",
         "temperature": "{location} में वर्तमान तापमान {temperature}°C है, महसूस {feels_like}°C जैसा होता है।",
         "rain_now": "{location} में अभी बारिश की संभावना {rain_probability}% है। स्थिति: {condition}.",
+        "rain_today": "{location} में आज बारिश की संभावना लगभग {rain_probability}% है, स्थिति {condition} रहने की उम्मीद है।",
+        "rain_tomorrow": "{location} में कल बारिश की संभावना लगभग {rain_probability}% है, स्थिति {condition} रहने की उम्मीद है।",
         "rain_forecast": "{location} में कल बारिश की संभावना लगभग {rain_probability}% है, स्थिति {condition} रहने की उम्मीद है।",
         "forecast": "{location} का पूर्वानुमान: {condition}, अधिकतम तापमान {temp_max}°C और न्यूनतम {temp_min}°C रहने की संभावना है।",
         "alerts_none": "{location} के लिए अभी कोई सक्रिय मौसम चेतावनी नहीं है। स्थिति सामान्य है।",
         "alerts_some": "⚠️ {location} के लिए {count} सक्रिय चेतावनी: {alert_summary}",
         "heatwave_precaution": "{location} में वर्तमान तापमान {temperature}°C है। लू के दौरान: पानी पीते रहें, दोपहर 12-3 बजे धूप से बचें, हल्के सूती कपड़े पहनें, बुजुर्गों और बच्चों का ध्यान रखें।",
+        "out_of_scope": (
+    "क्षमा करें, मैं केवल मौसम, मौसम के पूर्वानुमान, "
+    "चेतावनी और कृषि मौसम सलाह से संबंधित प्रश्नों का उत्तर दे सकता हूँ।"
+)
     },
 }
 

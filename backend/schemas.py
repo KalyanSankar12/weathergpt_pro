@@ -12,14 +12,15 @@ from typing import Optional
 
 class ChatRequest(BaseModel):
     message: str
-    language: Optional[str] = "en"  # "en" or "hi"
+    language: Optional[str] = "en"
+    location: Optional[str] = "Indore"
 
 
 class ChatResponse(BaseModel):
     reply: str
     intent: str
     location: Optional[str] = None
-    data_source: str  # "real" or "mock"
+    data_source: str
     weather_data: Optional[dict] = None
 
 
